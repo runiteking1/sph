@@ -18,7 +18,7 @@
  *@c*/
 static void default_params(sim_param_t* params)
 {
-    params->fname   = "run.out";
+    params->fname   = "run_test.out";
     params->nframes = 400;
     params->npframe = 100;
     params->dt      = 1e-4;

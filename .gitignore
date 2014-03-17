@@ -3,3 +3,8 @@
 /Makefile.in
 /Makefile.in.linux
 /Makefile.in.mac
+/main.aux
+/main.dvi
+/main.log
+/main.out
+*.out

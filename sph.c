@@ -46,6 +46,9 @@ int circ_indicator(float x, float y, float z)
     return (r2 < 0.25*0.25*0.25);
 }
 
+int points_indicator(float x, float y, float z) {
+  return (x >= 0.5 ||  x<=0.55) && (y == 0.5) && (z == 0.5);
+}
 /*@T
  *
  * The [[place_particles]] routine fills a region (indicated by the
@@ -116,6 +119,7 @@ void normalize_mass(sim_state_t* s, sim_param_t* param)
 sim_state_t* init_particles(sim_param_t* param)
 {
     sim_state_t* s = place_particles(param, box_indicator);
+    //sim_state_t* s = place_particles(param, points_indicator);
     normalize_mass(s, param);
     return s;
 }

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "vec3.h"
 #include "zmorton.h"
@@ -13,7 +14,7 @@
 #include "binhash.h"
 
 /* Define this to use the bucketing version of the code */
-/* #define USE_BUCKETING */
+#define USE_BUCKETING
 
 /*@T
  * \subsection{Density computations}
@@ -45,6 +46,7 @@ void compute_density(sim_state_t* s, sim_param_t* params)
 {
     int n = s->n;
     particle_t* p = s->part;
+
     particle_t** hash = s->hash;
 
     float h  = params->h;
@@ -59,8 +61,33 @@ void compute_density(sim_state_t* s, sim_param_t* params)
 
     // Accumulate density info
 #ifdef USE_BUCKETING
-    /* BEGIN TASK */
-    /* END TASK */
+    // Create small stack array of size what we want
+    unsigned neighborBucket[27];
+
+    for (int i = 0; i < n; ++i) {
+      particle_t* pi = s->part+i;
+      pi->rho += 4 * s->mass / M_PI / h3;
+
+      // Retrieve neighbors
+      particle_neighborhood(neighborBucket, pi, h);
+
+      // Loop through neighbors
+      particle_t* pj;
+
+      for (int j = 0; j < 27; j++) {
+        pj = hash[neighborBucket[j]];
+        //printf("Point: %p\n", pj);
+        if (pj != NULL) { // Go through linked list
+          do {
+            if (pi != pj) {
+              update_density(pi,pj, h2, C);
+            }
+            pj = pj->next;
+          } while (pj != NULL);
+        }
+      }
+    }
+
 #else
     for (int i = 0; i < n; ++i) {
         particle_t* pi = s->part+i;
@@ -150,8 +177,30 @@ void compute_accel(sim_state_t* state, sim_param_t* params)
 
     // Accumulate forces
 #ifdef USE_BUCKETING
-    /* BEGIN TASK */
-    /* END TASK */
+    // Create small stack array of size what we want
+    unsigned neighborBucket[27];
+
+    for (int i = 0; i < n; ++i) {
+      particle_t* pi = p+i;
+
+      // Retrieve neighbors
+      particle_neighborhood(neighborBucket, pi, h);
+
+      // Loop through neighbors
+      particle_t* pj;
+
+      for (int j = 0; j < 27; j++) {
+        pj = hash[neighborBucket[j]];
+        if (pj != NULL) { // Go through linked list
+          do {
+            if (pi != pj) { // Don't want to do crazy 
+              update_forces(pi, pj, h2, rho0, C0, Cp, Cv);
+            }
+            pj = pj->next;
+          } while (pj != NULL);
+        }
+      }
+    }
 #else
     for (int i = 0; i < n; ++i) {
         particle_t* pi = p+i;
